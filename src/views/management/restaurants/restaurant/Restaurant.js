@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom'
 import Axios from 'axios'
 import {
   CButton,
@@ -14,6 +15,7 @@ import { object } from 'prop-types'
 const Restaurant = () => {
 
   const[restaurantData, setRestaurantData] = useState([]);
+  const navigate = useNavigate();
   
   useEffect(()=>{
     const getRestaurants = async() =>{
@@ -27,7 +29,22 @@ const Restaurant = () => {
   },[]);
 
 function handleCreateRestaurant(event){
+  navigate('/restaurants/restaurantform');
+}
 
+function handleEdit(restaurantId){
+  navigate(`/restaurants/restauranteditform/${restaurantId}`)
+}
+
+const handleDisable = async(restaurantId) =>{
+  try{
+    var url = "http://localhost:1337/api/disablerestaurant/"+restaurantId;
+    const response = await Axios.put(url);
+    window.location.reload();
+  }
+  catch(e){
+    console.log(e);
+  }
 }
 
 const columns = [
@@ -53,39 +70,43 @@ const columns = [
   },
   {
     title: 'Options',
-    render: (text, record) => (
-      <div>
-
-      </div>
-
-    ),
+    dataIndex: 'Options'
   }
 ]
 
-  return (
-    <div>
-      <CButton onClick={handleCreateRestaurant}> New Restaurant </CButton>
-      <CTable>
-        <CTableHead>
-          <CTableRow>
-            {columns.map((column, index) => (
-              <CTableHeaderCell key= {index}> {column.title}</CTableHeaderCell>
-            ))}
-          </CTableRow>
-        </CTableHead>
-        <CTableBody>
-          {restaurantData.map((restaurant, index)=>(
+return (
+  <div>
+    <CButton onClick={handleCreateRestaurant} > New Restaurant </CButton>
+    <CTable>
+      <CTableHead>
+        <CTableRow>
+          {columns.map((column, index) => (
+            <CTableHeaderCell key= {index}>{column.title}</CTableHeaderCell>
+          ))}
+        </CTableRow>
+      </CTableHead>
+      <CTableBody>
+          {restaurantData.map((restaurant, index) => (
             <CTableRow key={index}>
-              {columns.map((column, columnIndex) =>(
-                <CTableDataCell key={columnIndex}> {restaurant[column.dataIndex]} </CTableDataCell>
+              {columns.map((column, columnIndex) => (
+                <CTableDataCell key={columnIndex}> 
+                  {column.dataIndex === 'Options' ? (
+                    <>
+                      <CButton onClick={() => handleEdit(restaurant.restaurantId)} color="primary">Edit</CButton>
+                      <CButton onClick={() => handleDisable(restaurant.restaurantId)} color="secondary">Disable</CButton>
+                    </>
+                  ):(
+                    restaurant[column.dataIndex]
+                  )}  
+               </CTableDataCell>
               ))}
             </CTableRow>
           ))}
-        </CTableBody>
-      </CTable>
-    </div>
+      </CTableBody>
+    </CTable>
+  </div>
+)
 
-  )
 }
 
 export default Restaurant
